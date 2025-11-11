@@ -1,0 +1,122 @@
+name: Deploy Huur-US to Azure Web App
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-azure-webapp
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 'Checkout code'
+      uses: actions/checkout@v4
+      
+    - name: 'Setup Node.js'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: 'Install root dependencies'
+      run: |
+        npm install
+        echo "✅ Root dependencies installed"
+        
+    - name: 'Install and build client'
+      run: |
+        cd client
+        npm install
+        echo "✅ Client dependencies installed"
+        echo "Checking if react-scripts is installed:"
+        ls -la node_modules/.bin/ | grep react-scripts
+        npm run build
+        echo "✅ React client built successfully"
+        
+    - name: 'Install server dependencies'
+      run: |
+        cd server
+        npm install
+        echo "✅ Server dependencies installed"
+        
+    - name: 'Create deployment package'
+      run: |
+        # Create directory structure
+        mkdir -p deploy/server
+        mkdir -p deploy/client/build
+        
+        # Copy files
+        cp -r server/* deploy/server/
+        cp -r client/build/* deploy/client/build/
+        cp package.json deploy/
+        cp package-lock.json deploy/
+        
+        # Create a .deployment file to tell Azure not to build
+        echo "[config]" > deploy/.deployment
+        echo "SCM_DO_BUILD_DURING_DEPLOYMENT = false" >> deploy/.deployment
+        
+        echo "✅ Deployment package created"
+        ls -la deploy/
+        
+    - name: 'Login to Azure'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: 'Configure Azure Web App for Node.js'
+      run: |
+        # Stop the web app
+        az webapp stop --name huur-us-node --resource-group huur_web || echo "App was already stopped"
+        
+        # Configure for Node.js (not Docker)
+        az webapp config set \
+          --name huur-us-node \
+          --resource-group huur_web \
+          --linux-fx-version "NODE|20-lts"
+        echo "✅ Node.js runtime configured"
+        
+        # Set startup command
+        az webapp config set \
+          --name huur-us-node \
+          --resource-group huur_web \
+          --startup-file "node server/index.js"
+        echo "✅ Startup command set"
+        
+        # Disable build during deployment
+        az webapp config appsettings set \
+          --name huur-us-node \
+          --resource-group huur_web \
+          --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false
+        echo "✅ Build during deployment disabled"
+        
+        # Remove any Docker settings
+        az webapp config appsettings delete \
+          --name huur-us-node \
+          --resource-group huur_web \
+          --setting-names WEBSITE_RUN_FROM_PACKAGE DOCKER_CUSTOM_IMAGE_NAME DOCKER_REGISTRY_SERVER_URL \
+          --output none || echo "Docker settings not found"
+        echo "✅ Docker settings removed"
+        
+        # Verify configuration
+        echo "🔍 Verifying configuration..."
+        az webapp config show --name huur-us-node --resource-group huur_web --query "{linuxFxVersion:linuxFxVersion, appCommandLine:appCommandLine}" --output table
+        
+        echo "✅ Azure Web App configured for Node.js"
+        
+    - name: 'Deploy to Azure Web App'
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'huur-us-node'
+        package: './deploy'
+        
+    - name: 'Start app and verify'
+      run: |
+        az webapp start --name huur-us-node --resource-group huur_web
+        sleep 10
+        az webapp show --name huur-us-node --resource-group huur_web --query "{state:state, defaultHostName:defaultHostName}" --output table
+        echo "🎉 Deployment complete!"
+        echo "🌐 App URL: https://huur-us-node-ejbye3b9akg6gnd8.canadacentral-01.azurewebsites.net"
