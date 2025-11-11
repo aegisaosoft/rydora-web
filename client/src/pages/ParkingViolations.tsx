@@ -1,4 +1,4 @@
-﻿/*
+/*
  *
  * Copyright (c) 2025 Alexander Orlov.
  * 34 Middletown Ave Atlantic Highlands NJ 07716

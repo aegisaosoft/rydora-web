@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { rydoraApi } from '../services/api';
 import toast from 'react-hot-toast';
