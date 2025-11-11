@@ -13,13 +13,16 @@
  *
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useDeviceDetection from '../hooks/useDeviceDetection';
 import './Footer.css';
 
 const Footer: React.FC = () => {
   const { isMobile } = useDeviceDetection();
+  const [showCopyright, setShowCopyright] = useState(false);
+
+  const closeCopyright = () => setShowCopyright(false);
 
   if (isMobile) {
     return (
@@ -32,6 +35,13 @@ const Footer: React.FC = () => {
                 <Link to="/terms" className="mobile-legal-link">Terms of Use</Link>
                 <Link to="/privacy" className="mobile-legal-link">Privacy Policy</Link>
               </div>
+              <button
+                type="button"
+                className="mobile-legal-link mobile-copyright-link"
+                onClick={() => setShowCopyright(true)}
+              >
+                © Aegis AO Soft LLC
+              </button>
             </div>
           </div>
         </div>
@@ -44,6 +54,15 @@ const Footer: React.FC = () => {
       <div className="container">
         <div className="footer-bottom">
           <div className="footer-leftbar">
+            <div className="footer-copyright">
+              <button
+                type="button"
+                className="footer-link-button"
+                onClick={() => setShowCopyright(true)}
+              >
+                © Aegis AO Soft LLC
+              </button>
+            </div>
             <div className="footer-contact">
               <div className="contact-item">
                 <i className="fas fa-phone"></i>
@@ -91,6 +110,39 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
+      {showCopyright && (
+        <>
+          <div className="footer-modal-backdrop" onClick={closeCopyright} />
+          <div className="footer-modal" role="dialog" aria-modal="true" aria-labelledby="copyright-title">
+            <div className="footer-modal-header">
+              <h3 id="copyright-title">Intellectual Property Notice</h3>
+              <button type="button" className="footer-modal-close" onClick={closeCopyright} aria-label="Close notice">
+                &times;
+              </button>
+            </div>
+            <div className="footer-modal-body">
+              <p><strong>Copyright (c) 2024-2025 Aegis AO Soft LLC and Alexander Orlov. All rights reserved.</strong></p>
+              <p>
+                This software and its source code are the exclusive property of Aegis AO Soft LLC and Alexander Orlov.
+                No part of this software, including but not limited to source code, documentation, compiled binaries,
+                or derivative works, may be used, reproduced, modified, distributed, or transmitted in any form or by
+                any means without the express written permission of Aegis AO Soft LLC and Alexander Orlov.
+              </p>
+              <p>
+                THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+                LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+                IN NO EVENT SHALL AEGIS AO SOFT LLC OR ALEXANDER ORLOV BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+                LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+                WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+              </p>
+              <p>
+                Unauthorized use, copying, modification, distribution, or any other exploitation of this software is
+                strictly prohibited and may result in severe civil and criminal penalties.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </footer>
   );
 };
