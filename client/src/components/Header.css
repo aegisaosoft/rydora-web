@@ -1,0 +1,196 @@
+/*
+ *
+ * Copyright (c) 2025 Alexander Orlov.
+ * 34 Middletown Ave Atlantic Highlands NJ 07716
+ *
+ * THIS SOFTWARE IS THE CONFIDENTIAL AND PROPRIETARY INFORMATION OF
+ * Alexander Orlov. ("CONFIDENTIAL INFORMATION"). YOU SHALL NOT DISCLOSE
+ * SUCH CONFIDENTIAL INFORMATION AND SHALL USE IT ONLY IN ACCORDANCE
+ * WITH THE TERMS OF THE LICENSE AGREEMENT YOU ENTERED INTO WITH
+ * Alexander Orlov.
+ *
+ * Author: Alexander Orlov Aegis AO Soft
+ *
+ */
+
+/* Header specific styles are already in index.css */
+
+/* Login/Logout Button Styles */
+.logout-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: 2px solid #c82333 !important;
+  transition: background-color 0.2s ease;
+  padding: 6px 12px !important;
+  font-size: 14px !important;
+  min-width: 60px !important;
+  min-height: 32px !important;
+}
+
+.logout-btn:hover {
+  background: #c82333 !important;
+}
+
+.login-btn {
+  background: #28a745 !important;
+  color: white !important;
+  border: 2px solid #1e7e34 !important;
+  transition: background-color 0.2s ease;
+  padding: 6px 12px !important;
+  font-size: 14px !important;
+  min-width: 60px !important;
+  min-height: 32px !important;
+}
+
+.login-btn:hover {
+  background: #1e7e34 !important;
+  color: white !important;
+}
+
+/* Mobile Header Styles */
+.mobile-header .mobile-nav-top {
+  display: flex;
+  justify-content: flex-end; /* Menu button on right since logo is outside */
+  align-items: center;
+  padding: 12px 0;
+  position: relative;
+  height: var(--header-height);
+  padding-left: calc(var(--header-height) * 1.5 + 16px); /* Leave space for wider fixed logo */
+}
+
+.mobile-header .mobile-menu-toggle {
+  background: #007bff !important;
+  border: 2px solid #0056b3 !important;
+  font-size: 20px !important;
+  color: white !important;
+  cursor: pointer !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  font-weight: bold !important;
+  min-width: 80px !important;
+  min-height: 48px !important;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-header .mobile-menu-toggle:hover {
+  background-color: #0056b3 !important;
+}
+
+.mobile-header .mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #eee;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 9999; /* Higher z-index to ensure it's above everything */
+  width: 100%;
+  max-width: 100vw;
+  border-bottom: 1px solid #eee;
+}
+
+.mobile-header .mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.mobile-header .mobile-nav-links .nav-link {
+  display: block;
+  padding: 18px 24px;
+  text-decoration: none;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  min-height: 56px;
+  line-height: 1.2;
+}
+
+.mobile-header .mobile-nav-links .nav-link:hover {
+  background-color: #f8f9fa;
+  color: #007bff;
+}
+
+.mobile-header .mobile-nav-links .logout-btn {
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: inherit;
+  color: #dc3545;
+  font-weight: 600;
+  padding: 18px 24px;
+  min-height: 56px;
+  width: 100%;
+  line-height: 1.2;
+}
+
+.mobile-header .mobile-nav-links .logout-btn:hover {
+  background-color: #f8f9fa;
+  color: #c82333;
+}
+
+/* Main CTA button in mobile menu */
+.mobile-header .mobile-nav-links .main-cta-mobile {
+  background-color: #007bff !important;
+  color: white !important;
+  font-weight: bold !important;
+  margin-top: 8px !important;
+  border-radius: 6px !important;
+}
+
+.mobile-header .mobile-nav-links .main-cta-mobile:hover {
+  background-color: #0056b3 !important;
+  color: white !important;
+}
+
+/* Ensure mobile header is positioned correctly */
+.mobile-header {
+  position: relative;
+  height: var(--header-height);
+}
+
+.mobile-header .navbar {
+  height: 100%;
+}
+
+.mobile-header .container {
+  height: 100%;
+  position: relative;
+}
+
+/* Mobile logo container - positioned at screen edge */
+.mobile-logo-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: var(--header-height); /* Same size as header (92px) */
+  width: calc(var(--header-height) * 1.5); /* Make it wider - 1.5x header height */
+  z-index: 1002;
+  background: rgba(52, 54, 69, 0.95); /* Semi-transparent header background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px; /* Add padding all around */
+}
+
+.mobile-logo-container .brand-link {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* Mobile logo adjustments - no margins, full height with better width */
+.mobile-header .logo {
+  height: calc(var(--header-height) - 16px); /* Slightly smaller than container for padding */
+  width: auto;
+  margin: 0;
+  padding: 0;
+  display: block;
+  max-width: 100%;
+  object-fit: contain; /* Maintain aspect ratio while fitting container */
+}

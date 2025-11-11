@@ -1,0 +1,50 @@
+type User @model {
+  id: ID!
+  email: String!
+  username: String!
+  firstName: String
+  lastName: String
+  company: String
+  phone: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Toll @model {
+  id: ID!
+  userId: ID!
+  user: User @connection(fields: ["userId"])
+  tollId: String!
+  location: String!
+  amount: Float!
+  date: AWSDate!
+  status: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Violation @model {
+  id: ID!
+  userId: ID!
+  user: User @connection(fields: ["userId"])
+  violationId: String!
+  type: String!
+  location: String!
+  amount: Float!
+  date: AWSDate!
+  status: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Payment @model {
+  id: ID!
+  userId: ID!
+  user: User @connection(fields: ["userId"])
+  amount: Float!
+  status: String!
+  paymentMethod: String
+  transactionId: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}

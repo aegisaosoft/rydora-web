@@ -1,0 +1,9 @@
+﻿{
+  "AppSyncApiName": "rydora-api",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "S3DeploymentBucket": "amplify-RYDORAus-main-123456-deployment",
+  "S3DeploymentRootKey": "amplify-appsync-files/1234567890123",
+  "AuthCognitoUserPoolId": "us-east-1_XXXXXXXXX"
+}
+

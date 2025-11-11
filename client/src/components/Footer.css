@@ -1,0 +1,168 @@
+/* Footer specific styles are already in index.css */
+
+/* Mobile Footer Styles */
+.mobile-footer {
+  padding: 20px 0;
+  position: relative;
+  background: #343645;
+  color: white;
+  width: 100%;
+  overflow: hidden;
+}
+
+.mobile-footer-content {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* Mobile Contact Section */
+.mobile-contact-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-contact-section .contact-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.mobile-contact-section .contact-item i {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Mobile Apps Section */
+.mobile-apps-section {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-app-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-app-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  min-height: 48px;
+}
+
+.mobile-app-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: inherit;
+}
+
+.mobile-app-link i {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+/* Mobile Social Section */
+.mobile-social-section {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-social-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mobile-social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  min-height: 48px;
+}
+
+.mobile-social-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: inherit;
+}
+
+.mobile-social-link i {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Mobile Legal Section - simplified */
+.mobile-legal-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-legal-links {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.mobile-legal-link {
+  display: inline-block;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  transition: background-color 0.2s ease;
+  min-height: 44px;
+  line-height: 1.2;
+  flex: 1;
+  max-width: 140px;
+}
+
+.mobile-legal-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}

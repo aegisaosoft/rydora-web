@@ -1,0 +1,188 @@
+/* Pending Payments Page Styles */
+.pending-payments-login {
+  padding: 0;
+  margin: 0;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.pending-payments-login .container {
+  max-width: 100%;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  margin-top: 0;
+  padding-top: 20px;
+}
+
+.pending-payments-login h1 {
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.pending-payments-login .form-group {
+  margin-bottom: 15px;
+}
+
+.pending-payments-login .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.pending-payments-login .form-group input,
+.pending-payments-login .form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pending-payments-login .form-group input:focus,
+.pending-payments-login .form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.pending-payments-login .btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+}
+
+.pending-payments-login .btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.pending-payments-login .btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.pending-payments-login .btn-primary:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.pending-payments-login .alert {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.pending-payments-login .alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.pending-payments-login .text-center {
+  text-align: center;
+}
+
+.pending-payments-login .py-4 {
+  padding: 1.5rem 0;
+}
+
+.pending-payments-login .mt-2 {
+  margin-top: 0.5rem;
+}
+
+.pending-payments-login .spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pending-payments-login .visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.pending-payments-login .badge {
+  display: inline-block;
+  padding: 0.25em 0.4em;
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+}
+
+.pending-payments-login .bg-success {
+  background-color: #28a745 !important;
+  color: white;
+}
+
+.pending-payments-login .bg-danger {
+  background-color: #dc3545 !important;
+  color: white;
+}
+
+.pending-payments-login .bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529;
+}
+
+.pending-payments-login .bg-secondary {
+  background-color: #6c757d !important;
+  color: white;
+}
+
+.pending-payments-login .text-danger {
+  color: #dc3545;
+}
+
+.pending-payments-login .font-medium {
+  font-weight: 500;
+}
+
+.pending-payments-login .max-w-xs {
+  max-width: 20rem;
+}
+
+.pending-payments-login .truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

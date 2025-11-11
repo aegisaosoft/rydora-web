@@ -1,0 +1,55 @@
+﻿{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-RYDORAus-dev-123456-authRole",
+      "UnauthRoleName": "amplify-RYDORAus-dev-123456-unauthRole",
+      "StackName": "amplify-RYDORAus-dev-123456",
+      "StackId": "arn:aws:cloudformation:us-east-1:123456789012:stack/amplify-RYDORAus-dev-123456/12345678-1234-1234-1234-123456789012",
+      "AmplifyAppId": "d1234567890abc"
+    },
+    "categories": {
+      "api": {
+        "rydora-api": {
+          "GraphQLAPIIdOutput": "1234567890abcdef",
+          "GraphQLAPIEndpointOutput": "https://1234567890abcdef.appsync-api.us-east-1.amazonaws.com/graphql",
+          "GraphQLAPIKeyOutput": "da2-1234567890abcdef"
+        }
+      },
+      "function": {
+        "rydora-lambda": {
+          "Name": "RYDORAusdev1234567890abcdef",
+          "Arn": "arn:aws:lambda:us-east-1:123456789012:function:RYDORAusdev1234567890abcdef",
+          "Region": "us-east-1",
+          "LambdaExecutionRole": "amplify-RYDORAus-dev-123456-lambdaExecutionRole"
+        }
+      }
+    }
+  },
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-RYDORAus-prod-123456-authRole",
+      "UnauthRoleName": "amplify-RYDORAus-prod-123456-unauthRole",
+      "StackName": "amplify-RYDORAus-prod-123456",
+      "StackId": "arn:aws:cloudformation:us-east-1:123456789012:stack/amplify-RYDORAus-prod-123456/12345678-1234-1234-1234-123456789012",
+      "AmplifyAppId": "d1234567890abc"
+    },
+    "categories": {
+      "api": {
+        "rydora-api": {
+          "GraphQLAPIIdOutput": "1234567890abcdef",
+          "GraphQLAPIEndpointOutput": "https://1234567890abcdef.appsync-api.us-east-1.amazonaws.com/graphql",
+          "GraphQLAPIKeyOutput": "da2-1234567890abcdef"
+        }
+      },
+      "function": {
+        "rydora-lambda": {
+          "Name": "RYDORAusprod1234567890abcdef",
+          "Arn": "arn:aws:lambda:us-east-1:123456789012:function:RYDORAusprod1234567890abcdef",
+          "Region": "us-east-1",
+          "LambdaExecutionRole": "amplify-RYDORAus-prod-123456-lambdaExecutionRole"
+        }
+      }
+    }
+  }
+}
+

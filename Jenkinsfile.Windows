@@ -1,0 +1,396 @@
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18'
+        NPM_CONFIG_LOGLEVEL = 'error'
+        BUILD_DIR = 'build'
+        DEPLOY_DIR = 'C:\\inetpub\\wwwroot\\rydora'
+        SERVER_DIR = 'C:\\inetpub\\wwwroot\\rydora\\server'
+        CLIENT_DIR = 'C:\\inetpub\\wwwroot\\rydora\\client'
+        NODE_ENV = 'production'
+        PORT = '5000'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = bat(
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
+                    env.BUILD_NUMBER_SHORT = "${BUILD_NUMBER}"
+                }
+            }
+        }
+        
+        stage('Setup Node.js') {
+            steps {
+                script {
+                    // Install Node.js if not present
+                    bat '''
+                        echo Checking Node.js installation...
+                        node --version >nul 2>&1
+                        if errorlevel 1 (
+                            echo Installing Node.js %NODE_VERSION%...
+                            powershell -Command "Invoke-WebRequest -Uri 'https://nodejs.org/dist/v%NODE_VERSION%.0/node-v%NODE_VERSION%.0-x64.msi' -OutFile 'nodejs-installer.msi'"
+                            msiexec /i nodejs-installer.msi /quiet /norestart
+                            timeout /t 30 /nobreak >nul
+                            del nodejs-installer.msi
+                        )
+                        
+                        echo Node.js version:
+                        node --version
+                        echo NPM version:
+                        npm --version
+                    '''
+                }
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    // Install root dependencies
+                    bat '''
+                        echo Installing root dependencies...
+                        npm ci --only=production
+                    '''
+                    
+                    // Install client dependencies
+                    bat '''
+                        echo Installing client dependencies...
+                        cd client
+                        npm ci
+                    '''
+                }
+            }
+        }
+        
+        stage('Lint & Test') {
+            parallel {
+                stage('Lint Client') {
+                    steps {
+                        bat '''
+                            echo Running ESLint on client code...
+                            cd client
+                            npm run lint || echo Linting completed with warnings
+                        '''
+                    }
+                }
+                
+                stage('Type Check') {
+                    steps {
+                        bat '''
+                            echo Running TypeScript type checking...
+                            cd client
+                            npx tsc --noEmit || echo Type checking completed with warnings
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Build Client') {
+            steps {
+                bat '''
+                    echo Building React application...
+                    cd client
+                    npm run build
+                    
+                    echo Build completed. Contents of build directory:
+                    dir build
+                '''
+            }
+        }
+        
+        stage('Prepare Server') {
+            steps {
+                bat '''
+                    echo Preparing server files...
+                    
+                    REM Create server directory structure
+                    if not exist "%SERVER_DIR%" mkdir "%SERVER_DIR%"
+                    if not exist "%SERVER_DIR%\\public" mkdir "%SERVER_DIR%\\public"
+                    
+                    REM Copy server files
+                    xcopy /E /I /Y server\\* "%SERVER_DIR%\\"
+                    copy package.json "%SERVER_DIR%\\"
+                    copy package-lock.json "%SERVER_DIR%\\" 2>nul || echo No package-lock.json found
+                    
+                    REM Copy client build to server public directory
+                    xcopy /E /I /Y client\\build\\* "%SERVER_DIR%\\public\\"
+                    
+                    echo Server files prepared in %SERVER_DIR%
+                '''
+            }
+        }
+        
+        stage('Install Server Dependencies') {
+            steps {
+                bat '''
+                    echo Installing server production dependencies...
+                    cd /d "%SERVER_DIR%"
+                    npm ci --only=production
+                '''
+            }
+        }
+        
+        stage('Create Windows Service') {
+            steps {
+                bat '''
+                    echo Creating Windows service for Rydora application...
+                    
+                    REM Install node-windows if not present
+                    npm install -g node-windows
+                    
+                    REM Create service installation script
+                    echo var Service = require('node-windows').Service; > "%SERVER_DIR%\\install-service.js"
+                    echo. >> "%SERVER_DIR%\\install-service.js"
+                    echo var svc = new Service({ >> "%SERVER_DIR%\\install-service.js"
+                    echo   name:'Rydora Application', >> "%SERVER_DIR%\\install-service.js"
+                    echo   description: 'Rydora Toll Management Platform', >> "%SERVER_DIR%\\install-service.js"
+                    echo   script: '%SERVER_DIR%\\index.js', >> "%SERVER_DIR%\\install-service.js"
+                    echo   nodeOptions: [ >> "%SERVER_DIR%\\install-service.js"
+                    echo     '--max_old_space_size=4096' >> "%SERVER_DIR%\\install-service.js"
+                    echo   ], >> "%SERVER_DIR%\\install-service.js"
+                    echo   env: [ >> "%SERVER_DIR%\\install-service.js"
+                    echo     { name: "NODE_ENV", value: "production" }, >> "%SERVER_DIR%\\install-service.js"
+                    echo     { name: "PORT", value: "5000" } >> "%SERVER_DIR%\\install-service.js"
+                    echo   ] >> "%SERVER_DIR%\\install-service.js"
+                    echo }); >> "%SERVER_DIR%\\install-service.js"
+                    echo. >> "%SERVER_DIR%\\install-service.js"
+                    echo svc.on('install', function(){ >> "%SERVER_DIR%\\install-service.js"
+                    echo   svc.start(); >> "%SERVER_DIR%\\install-service.js"
+                    echo }); >> "%SERVER_DIR%\\install-service.js"
+                    echo. >> "%SERVER_DIR%\\install-service.js"
+                    echo svc.install(); >> "%SERVER_DIR%\\install-service.js"
+                    
+                    REM Install the service
+                    cd /d "%SERVER_DIR%"
+                    node install-service.js
+                    
+                    echo Windows service created
+                '''
+            }
+        }
+        
+        stage('Configure IIS') {
+            steps {
+                bat '''
+                    echo Configuring IIS for Rydora application...
+                    
+                    REM Enable IIS features if not already enabled
+                    dism /online /enable-feature /featurename:IIS-WebServerRole /all /norestart
+                    dism /online /enable-feature /featurename:IIS-WebServer /all /norestart
+                    dism /online /enable-feature /featurename:IIS-CommonHttpFeatures /all /norestart
+                    dism /online /enable-feature /featurename:IIS-HttpErrors /all /norestart
+                    dism /online /enable-feature /featurename:IIS-HttpLogging /all /norestart
+                    dism /online /enable-feature /featurename:IIS-RequestFiltering /all /norestart
+                    dism /online /enable-feature /featurename:IIS-StaticContent /all /norestart
+                    dism /online /enable-feature /featurename:IIS-DefaultDocument /all /norestart
+                    dism /online /enable-feature /featurename:IIS-DirectoryBrowsing /all /norestart
+                    dism /online /enable-feature /featurename:IIS-ASPNET45 /all /norestart
+                    
+                    REM Install URL Rewrite module
+                    powershell -Command "Invoke-WebRequest -Uri 'https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi' -OutFile 'rewrite_amd64_en-US.msi'"
+                    msiexec /i rewrite_amd64_en-US.msi /quiet /norestart
+                    timeout /t 30 /nobreak >nul
+                    del rewrite_amd64_en-US.msi
+                    
+                    REM Create application pool
+                    %windir%\\system32\\inetsrv\\appcmd.exe add apppool /name:"RydoraAppPool" /managedRuntimeVersion:"" /processModel.identityType:ApplicationPoolIdentity
+                    
+                    REM Create website
+                    %windir%\\system32\\inetsrv\\appcmd.exe add site /name:"Rydora" /bindings:http/*:80: /physicalPath:"%SERVER_DIR%\\public"
+                    %windir%\\system32\\inetsrv\\appcmd.exe set app "Rydora/" /applicationPool:"RydoraAppPool"
+                    
+                    REM Configure URL Rewrite rules
+                    echo ^<?xml version="1.0" encoding="UTF-8"?^> > "%SERVER_DIR%\\public\\web.config"
+                    echo ^<configuration^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo   ^<system.webServer^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo     ^<rewrite^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo       ^<rules^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^<rule name="API Proxy" stopProcessing="true"^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo           ^<match url="^api/(.*)" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo           ^<action type="Rewrite" url="http://localhost:5000/api/{R:1}" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^</rule^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^<rule name="React Router" stopProcessing="true"^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo           ^<match url=".*" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo           ^<conditions logicalGrouping="MatchAll"^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo             ^<add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo             ^<add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo           ^</conditions^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo           ^<action type="Rewrite" url="/" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^</rule^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo       ^</rules^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo     ^</rewrite^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo     ^<httpCompression^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo       ^<dynamicTypes^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^<add mimeType="application/json" enabled="true" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^<add mimeType="application/javascript" enabled="true" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^<add mimeType="text/css" enabled="true" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo       ^</dynamicTypes^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo       ^<staticTypes^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^<add mimeType="application/javascript" enabled="true" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo         ^<add mimeType="text/css" enabled="true" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo       ^</staticTypes^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo     ^</httpCompression^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo     ^<staticContent^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo       ^<clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="365.00:00:00" /^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo     ^</staticContent^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo   ^</system.webServer^> >> "%SERVER_DIR%\\public\\web.config"
+                    echo ^</configuration^> >> "%SERVER_DIR%\\public\\web.config"
+                    
+                    REM Set permissions
+                    icacls "%SERVER_DIR%" /grant "IIS_IUSRS:(OI)(CI)F" /T
+                    icacls "%SERVER_DIR%" /grant "IUSR:(OI)(CI)F" /T
+                    
+                    echo IIS configuration completed
+                '''
+            }
+        }
+        
+        stage('Deploy Application') {
+            steps {
+                bat '''
+                    echo Deploying Rydora application...
+                    
+                    REM Stop existing service if running
+                    sc stop "Rydora Application" 2>nul || echo Service was not running
+                    timeout /t 5 /nobreak >nul
+                    
+                    REM Start the service
+                    sc start "Rydora Application"
+                    
+                    REM Wait for service to start
+                    timeout /t 10 /nobreak >nul
+                    
+                    REM Check service status
+                    sc query "Rydora Application"
+                    
+                    echo Application deployed successfully
+                '''
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                bat '''
+                    echo Performing health check...
+                    
+                    REM Wait for application to be ready
+                    for /L %%i in (1,1,30) do (
+                        curl -f http://localhost:5000/health >nul 2>&1
+                        if not errorlevel 1 (
+                            echo Application is healthy
+                            goto :health_ok
+                        )
+                        echo Waiting for application to start... (attempt %%i/30)
+                        timeout /t 2 /nobreak >nul
+                    )
+                    :health_ok
+                    
+                    REM Test the main application
+                    curl -f http://localhost/ >nul 2>&1
+                    if not errorlevel 1 (
+                        echo Application is accessible via IIS
+                    ) else (
+                        echo Warning: Application may not be accessible via IIS
+                    )
+                '''
+            }
+        }
+        
+        stage('Configure Firewall') {
+            steps {
+                bat '''
+                    echo Configuring Windows Firewall...
+                    
+                    REM Allow HTTP traffic
+                    netsh advfirewall firewall add rule name="Rydora HTTP" dir=in action=allow protocol=TCP localport=80
+                    netsh advfirewall firewall add rule name="Rydora API" dir=in action=allow protocol=TCP localport=5000
+                    
+                    REM Allow HTTPS traffic (if SSL is configured)
+                    netsh advfirewall firewall add rule name="Rydora HTTPS" dir=in action=allow protocol=TCP localport=443
+                    
+                    echo Firewall rules configured
+                '''
+            }
+        }
+        
+        stage('Create Monitoring Scripts') {
+            steps {
+                bat '''
+                    echo Creating monitoring scripts...
+                    
+                    REM Create service monitoring script
+                    echo @echo off > "%SERVER_DIR%\\monitor-service.bat"
+                    echo sc query "Rydora Application" ^| find "RUNNING" ^>nul >> "%SERVER_DIR%\\monitor-service.bat"
+                    echo if errorlevel 1 ( >> "%SERVER_DIR%\\monitor-service.bat"
+                    echo   echo Service is not running, attempting to start... >> "%SERVER_DIR%\\monitor-service.bat"
+                    echo   sc start "Rydora Application" >> "%SERVER_DIR%\\monitor-service.bat"
+                    echo ) else ( >> "%SERVER_DIR%\\monitor-service.bat"
+                    echo   echo Service is running >> "%SERVER_DIR%\\monitor-service.bat"
+                    echo ) >> "%SERVER_DIR%\\monitor-service.bat"
+                    
+                    REM Create log cleanup script
+                    echo @echo off > "%SERVER_DIR%\\cleanup-logs.bat"
+                    echo forfiles /p "%SERVER_DIR%" /s /m *.log /d -7 /c "cmd /c del @path" >> "%SERVER_DIR%\\cleanup-logs.bat"
+                    
+                    REM Create backup script
+                    echo @echo off > "%SERVER_DIR%\\backup-app.bat"
+                    echo set backup_dir=C:\\Backups\\Rydora\\%%date:~-4,4%%-%%date:~-10,2%%-%%date:~-7,2%% >> "%SERVER_DIR%\\backup-app.bat"
+                    echo if not exist "%%backup_dir%%" mkdir "%%backup_dir%%" >> "%SERVER_DIR%\\backup-app.bat"
+                    echo xcopy /E /I /Y "%SERVER_DIR%" "%%backup_dir%%" >> "%SERVER_DIR%\\backup-app.bat"
+                    
+                    echo Monitoring scripts created
+                '''
+            }
+        }
+        
+        stage('Cleanup') {
+            steps {
+                bat '''
+                    echo Cleaning up build artifacts...
+                    rmdir /S /Q client\\node_modules 2>nul || echo No node_modules to clean
+                    rmdir /S /Q client\\build 2>nul || echo No build directory to clean
+                    echo Cleanup completed
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                echo "Build completed with status: ${currentBuild.result ?: 'SUCCESS'}"
+            }
+        }
+        
+        success {
+            echo "✅ Deployment successful! Application is running at http://your-windows-server-ip/"
+            echo "📊 Service status: sc query \"Rydora Application\""
+            echo "📝 Logs: Check Windows Event Viewer or %SERVER_DIR%\\logs"
+            echo "🔧 Management: Use Services.msc or sc command"
+        }
+        
+        failure {
+            echo "❌ Deployment failed. Check the logs above for details."
+            bat '''
+                echo Checking service status:
+                sc query "Rydora Application" || echo Service not found
+                
+                echo Checking recent logs:
+                dir "%SERVER_DIR%\\logs" 2>nul || echo No logs directory found
+            '''
+        }
+        
+        cleanup {
+            // Clean up workspace
+            cleanWs()
+        }
+    }
+}

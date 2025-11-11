@@ -1,0 +1,25 @@
+ssh-keygen -t ed25519 -C "aegisaosoft@gmail.com"
+
+
+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
+
+
+Application (client) ID: f44a3bec-0628-443e-bcba-cf20cef29d67
+Object ID: a0da255f-e91f-459f-8d1d-89accd710f0b
+Directory (tenant) ID: 2ff4df6f-8be0-4221-b6ed-37358daa08a5
+
+{
+  "clientId": "f44a3bec-0628-443e-bcba-cf20cef29d67",
+  "clientSecret": "ZX-8Q~rEVSIJtxaJo_hhyuIj9ujErVEO9F7-Vb2b",
+  "subscriptionId": "750fed38-d899-41fb-b048-587517dd796d",
+  "tenantId": "2ff4df6f-8be0-4221-b6ed-37358daa08a5",
+  "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+  "resourceManagerEndpointUrl": "https://management.azure.com/",
+  "activeDirectoryGraphResourceId": "https://graph.windows.net/",
+  "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+  "galleryEndpointUrl": "https://gallery.azure.com/",
+  "managementEndpointUrl": "https://management.core.windows.net/"
+}
+
+value: ZX-8Q~rEVSIJtxaJo_hhyuIj9ujErVEO9F7-Vb2b
+secret id: b6d2e592-6872-442e-9210-e5dbe6ba18b9

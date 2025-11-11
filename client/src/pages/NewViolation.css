@@ -1,0 +1,264 @@
+/* NewViolation.css - Styles for the New Violation form */
+
+.new-violation-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 30px;
+  text-align: center;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.page-header h1 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.page-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+.violation-form {
+  background: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.form-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.form-section h3 {
+  color: #495057;
+  margin-bottom: 6px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 3px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 6px;
+}
+
+.form-group.col-md-6 {
+  flex: 0 0 calc(50% - 10px);
+}
+
+.form-group.col-md-7 {
+  flex: 0 0 calc(58.333333% - 10px);
+}
+
+.form-group.col-md-5 {
+  flex: 0 0 calc(41.666667% - 10px);
+}
+
+.form-group.col-md-4 {
+  flex: 0 0 calc(33.333% - 14px);
+}
+
+.form-group.col-md-3 {
+  flex: 0 0 calc(25% - 10px);
+}
+
+.form-group.col-md-2 {
+  flex: 0 0 calc(16.666667% - 10px);
+}
+
+.form-group.col-12 {
+  flex: 0 0 100%;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 3px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #28a745 !important;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #28a745 !important;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-control:hover {
+  border-color: #28a745 !important;
+}
+
+select.form-control {
+  cursor: pointer;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+  height: auto;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 2px solid #f1f3f4;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,123,255,0.4);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  box-shadow: 0 2px 4px rgba(108,117,125,0.3);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #545b62;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(108,117,125,0.4);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Form validation styles */
+.form-control:invalid {
+  border-color: #dc3545;
+}
+
+.form-control:valid {
+  border-color: #28a745;
+}
+
+/* Loading state */
+.btn-primary:disabled {
+  background-color: #007bff;
+  opacity: 0.8;
+}
+
+/* Required field indicator */
+label:after {
+  content: '';
+}
+
+label:has(+ input[required]):after,
+label:has(+ select[required]):after {
+  content: ' *';
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .new-violation-container {
+    padding: 10px;
+  }
+  
+  .violation-form {
+    padding: 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-group.col-md-6,
+  .form-group.col-md-4 {
+    flex: 0 0 100%;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  .page-header h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 20px;
+  }
+  
+  .violation-form {
+    padding: 15px;
+  }
+}

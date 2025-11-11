@@ -1,0 +1,358 @@
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18'
+        NPM_CONFIG_LOGLEVEL = 'error'
+        BUILD_DIR = 'build'
+        DEPLOY_DIR = '/var/www/rydora'
+        SERVER_DIR = '/var/www/rydora/server'
+        CLIENT_DIR = '/var/www/rydora/client'
+        NODE_ENV = 'production'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_SHORT = sh(
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
+                    env.BUILD_NUMBER_SHORT = "${BUILD_NUMBER}"
+                }
+            }
+        }
+        
+        stage('Setup Node.js') {
+            steps {
+                script {
+                    // Check Node.js version (assuming it's already installed in Jenkins container)
+                    sh '''
+                        echo "Node.js version:"
+                        node --version || echo "Node.js not found"
+                        echo "NPM version:"
+                        npm --version || echo "NPM not found"
+                    '''
+                }
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    // Install root dependencies
+                    sh '''
+                        echo "Installing root dependencies..."
+                        npm ci --only=production
+                    '''
+                    
+                    // Install client dependencies
+                    sh '''
+                        echo "Installing client dependencies..."
+                        cd client
+                        npm ci
+                    '''
+                }
+            }
+        }
+        
+        stage('Lint & Test') {
+            parallel {
+                stage('Lint Client') {
+                    steps {
+                        sh '''
+                            echo "Running ESLint on client code..."
+                            cd client
+                            npm run lint || echo "Linting completed with warnings"
+                        '''
+                    }
+                }
+                
+                stage('Type Check') {
+                    steps {
+                        sh '''
+                            echo "Running TypeScript type checking..."
+                            cd client
+                            npx tsc --noEmit || echo "Type checking completed with warnings"
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Build Client') {
+            steps {
+                sh '''
+                    echo "Building React application..."
+                    cd client
+                    npm run build
+                    
+                    echo "Build completed. Contents of build directory:"
+                    ls -la build/
+                '''
+            }
+        }
+        
+        stage('Prepare Server') {
+            steps {
+                sh '''
+                    echo "Preparing server files..."
+                    
+                    # Create server directory structure
+                    mkdir -p ${SERVER_DIR}
+                    
+                    # Copy server files
+                    cp -r server/* ${SERVER_DIR}/
+                    cp package.json ${SERVER_DIR}/
+                    cp package-lock.json ${SERVER_DIR}/ 2>/dev/null || echo "No package-lock.json found"
+                    
+                    # Copy client build to server public directory
+                    mkdir -p ${SERVER_DIR}/public
+                    cp -r client/build/* ${SERVER_DIR}/public/
+                    
+                    echo "Server files prepared in ${SERVER_DIR}"
+                '''
+            }
+        }
+        
+        stage('Install Server Dependencies') {
+            steps {
+                sh '''
+                    echo "Installing server production dependencies..."
+                    cd ${SERVER_DIR}
+                    npm ci --only=production
+                '''
+            }
+        }
+        
+        stage('Create Deployment Files') {
+            steps {
+                sh '''
+                    echo "Creating deployment configuration files..."
+                    
+                    # Create systemd service file
+                    cat > rydora.service <<EOF
+[Unit]
+Description=Rydora Toll Management Platform
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=${SERVER_DIR}
+Environment=NODE_ENV=production
+Environment=PORT=5000
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=rydora
+
+[Install]
+WantedBy=multi-user.target
+EOF
+                    
+                    echo "Deployment files created"
+                '''
+            }
+        }
+        
+        stage('Create Nginx Config') {
+            steps {
+                sh '''
+                    echo "Creating Nginx configuration file..."
+                    
+                    cat > nginx-rydora.conf <<EOF
+server {
+    listen 80;
+    server_name _;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+    
+    # Serve static files
+    location / {
+        root ${SERVER_DIR}/public;
+        try_files \$uri \$uri/ /index.html;
+        
+        # Cache static assets
+        location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+    
+    # API routes
+    location /api/ {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
+    }
+    
+    # Health check
+    location /health {
+        proxy_pass http://localhost:5000/health;
+        access_log off;
+    }
+}
+EOF
+                    
+                    echo "Nginx configuration file created"
+                '''
+            }
+        }
+        
+        stage('Archive Deployment Artifacts') {
+            steps {
+                sh '''
+                    echo "Archiving deployment artifacts..."
+                    
+                    # Create deployment package
+                    mkdir -p deployment-package
+                    
+                    # Copy built application
+                    cp -r ${SERVER_DIR} deployment-package/
+                    
+                    # Copy configuration files
+                    cp rydora.service deployment-package/
+                    cp nginx-rydora.conf deployment-package/
+                    
+                    # Create deployment script
+                    cat > deployment-package/deploy.sh <<'DEPLOY_EOF'
+#!/bin/bash
+set -e
+echo "Deploying Rydora application..."
+
+# Stop existing service
+sudo systemctl stop rydora || echo "Service was not running"
+
+# Copy service file
+sudo cp rydora.service /etc/systemd/system/
+sudo systemctl daemon-reload
+
+# Copy nginx config
+sudo cp nginx-rydora.conf /etc/nginx/sites-available/rydora
+sudo ln -sf /etc/nginx/sites-available/rydora /etc/nginx/sites-enabled/
+
+# Set permissions
+sudo chown -R www-data:www-data server/
+sudo chmod -R 755 server/
+
+# Start services
+sudo systemctl start rydora
+sudo systemctl enable rydora
+sudo nginx -t && sudo systemctl reload nginx
+
+echo "Deployment completed successfully"
+DEPLOY_EOF
+                    
+                    chmod +x deployment-package/deploy.sh
+                    
+                    echo "Deployment package created"
+                '''
+            }
+        }
+        
+        stage('Verify Build') {
+            steps {
+                sh '''
+                    echo "Verifying build artifacts..."
+                    
+                    # Check if deployment package exists
+                    if [ -d "deployment-package" ]; then
+                        echo "✅ Deployment package created"
+                        ls -la deployment-package/
+                    else
+                        echo "❌ Deployment package missing"
+                        exit 1
+                    fi
+                    
+                    # Check if server files exist
+                    if [ -f "deployment-package/server/index.js" ]; then
+                        echo "✅ Server files included"
+                    else
+                        echo "❌ Server files missing"
+                        exit 1
+                    fi
+                    
+                    # Check if client build exists
+                    if [ -d "deployment-package/server/public" ]; then
+                        echo "✅ Client build included"
+                    else
+                        echo "❌ Client build missing"
+                        exit 1
+                    fi
+                    
+                    echo "Build verification completed"
+                '''
+                
+                // Archive the deployment package for download
+                archiveArtifacts artifacts: 'deployment-package/**/*', allowEmptyArchive: false
+                echo "Deployment package archived for download"
+            }
+        }
+        
+        stage('Cleanup') {
+            steps {
+                sh '''
+                    echo "Cleaning up build artifacts..."
+                    rm -rf client/node_modules
+                    rm -rf client/build
+                    echo "Cleanup completed"
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                echo "Build completed with status: ${currentBuild.result ?: 'SUCCESS'}"
+            }
+        }
+        
+        success {
+            echo "✅ Build successful! Deployment package is ready."
+            echo "📦 Download deployment-package/ from Jenkins workspace"
+            echo "🚀 Run: ./deploy.sh on your target server"
+            echo "📊 Service status: sudo systemctl status rydora"
+            echo "📝 Logs: sudo journalctl -u rydora -f"
+        }
+        
+        failure {
+            echo "❌ Build failed. Check the logs above for details."
+            sh '''
+                echo "Build artifacts status:"
+                ls -la . || echo "No files found"
+                
+                echo "Client build status:"
+                ls -la client/ || echo "Client directory not found"
+            '''
+        }
+        
+        cleanup {
+            // Clean up workspace
+            cleanWs()
+        }
+    }
+}

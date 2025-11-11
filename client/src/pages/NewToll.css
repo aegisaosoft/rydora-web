@@ -1,0 +1,258 @@
+.new-toll-container {
+  padding: 20px 0;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.page-header {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.page-header p {
+  color: #666;
+  margin-bottom: 0;
+  font-size: 16px;
+}
+
+.toll-form {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+  margin-bottom: 40px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.form-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.form-section h3 {
+  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #007bff;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15px;
+}
+
+.form-group {
+  padding: 0 15px;
+  margin-bottom: 20px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-group.col-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.form-group.col-md-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.form-group.col-md-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+.form-group.col-md-4 {
+  flex: 0 0 33.333333%;
+  max-width: 33.333333%;
+}
+
+.form-group.col-md-3 {
+  flex: 0 0 25%;
+  max-width: 25%;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  color: #495057;
+  background-color: #fff;
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control:disabled {
+  background-color: #e9ecef;
+  opacity: 1;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.form-check-input {
+  margin-right: 8px;
+  margin-top: 0;
+}
+
+.form-check-label {
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 30px;
+  border-top: 1px solid #e9ecef;
+  margin-top: 30px;
+}
+
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  border: 1px solid transparent;
+  padding: 12px 24px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 6px;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  text-decoration: none;
+  min-width: 120px;
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  color: #fff;
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.btn-secondary {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  color: #fff;
+  background-color: #545b62;
+  border-color: #4e555b;
+}
+
+.btn-outline-secondary {
+  color: #6c757d;
+  background-color: transparent;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover:not(:disabled) {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .form-group.col-md-3 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-group.col-md-6,
+  .form-group.col-md-4,
+  .form-group.col-md-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .form-row {
+    margin: 0;
+  }
+  
+  .form-group {
+    padding: 0;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .new-toll-container {
+    padding: 10px 0;
+  }
+  
+  .toll-form {
+    padding: 20px;
+  }
+  
+  .page-header {
+    padding: 15px;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+  }
+}

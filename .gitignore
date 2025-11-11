@@ -1,0 +1,159 @@
+*.zip
+*.tar
+# -------------------------
+# OS / Editor cruft
+# -------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.orig
+*.log
+.npmrc
+.vscode/
+.idea/
+*.iml
+
+# -------------------------
+# Node: dependencies & caches
+# -------------------------
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+.bun/
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/
+.nyc_output/
+coverage/
+.tmp/
+temp/
+
+# -------------------------
+# Build artifacts
+# -------------------------
+dist/
+build/
+out/
+lib/
+.esm/
+.cjs/
+
+# For React apps (CRA, Vite, Next.js, Remix, etc.)
+**/build/
+**/dist/
+**/.next/
+.next/
+.vercel/
+.netlify/
+.remix/
+.storybook-out/
+storybook-static/
+
+# -------------------------
+# Framework/runtime specifics
+# -------------------------
+# Next.js
+.next/
+# Remix
+.build/
+# Expo/React Native (if not used, harmless)
+.expo/
+# Svelte/Vite caches (harmless if not used)
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*
+
+# -------------------------
+# TypeScript
+# -------------------------
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# -------------------------
+# Testing
+# -------------------------
+jest-html-reporters-*.html
+junit.xml
+test-results/
+cypress/screenshots/
+cypress/videos/
+playwright-report/
+test-output/
+
+# -------------------------
+# Package managers
+# -------------------------
+# lockfiles: keep ONE per repo; ignore others if you prefer consistency
+# Uncomment to enforce a single PM's lockfile
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+# bun.lockb
+
+# -------------------------
+# Images / design exports
+# -------------------------
+*.psd
+*.ai
+*.sketch
+
+# -------------------------
+# Local tooling
+# -------------------------
+.envrc
+.direnv/
+.terraform/
+docker-data/
+*.local
+
+# -------------------------
+# Monorepo (optional)
+# -------------------------
+# Ignore example apps or playgrounds
+examples/**/node_modules/
+examples/**/dist/
+playground/**/node_modules/
+playground/**/dist/
+
+# -------------------------
+# Server-side Node specifics
+# -------------------------
+# PM2 / logs
+pids
+pids/*
+logs
+logs/*
+*.pid
+*.seed
+*.pid.lock
+
+# -------------------------
+# Misc caches
+# -------------------------
+*.cache
+.cache-loader/
+.fusebox/
+.rpt2_cache/
+bower_components/
+
+# -------------------------
+# Yarn Plug'n'Play
+# -------------------------
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# -------------------------
+# VSCode launch tasks (optional: keep if shared)
+# -------------------------
+# .vscode/launch.json
+# .vscode/tasks.json
