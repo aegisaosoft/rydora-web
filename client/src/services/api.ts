@@ -99,10 +99,10 @@ export const setAuthToken = (token?: string | null) => {
 
 // Function to update API base URL
 export const updateApiBaseUrl = (newBaseUrl: string) => {
-  console.log('Updating API base URL to:', newBaseUrl);
+  console.log('🔄 Updating API base URL to:', newBaseUrl);
   API_BASE_URL = newBaseUrl;
   api.defaults.baseURL = newBaseUrl;
-  console.log('API base URL updated:', api.defaults.baseURL);
+  console.log('✅ API base URL updated:', api.defaults.baseURL);
 };
 
 // Request interceptor to add Bearer token and API environment header
@@ -129,8 +129,8 @@ api.interceptors.response.use(
       const retryAfter = error.response.headers['retry-after'];
       const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 30000; // Default 30 seconds
       
-      console.warn('Rate limited by server. Please wait before making more requests.');
-      console.warn(`Suggested wait time: ${retryAfter || 30} seconds`);
+      console.warn('🚫 Rate limited by server. Please wait before making more requests.');
+      console.warn(`⏰ Suggested wait time: ${retryAfter || 30} seconds`);
       
       // Add retry-after info to error for better user feedback
       error.retryAfter = waitTime;
@@ -141,7 +141,7 @@ api.interceptors.response.use(
     
     // Handle network errors
     if (!error.response) {
-      console.warn('Network error - server may be unreachable');
+      console.warn('🌐 Network error - server may be unreachable');
     }
     
     // Silence auth/me 401 noise; keep other errors

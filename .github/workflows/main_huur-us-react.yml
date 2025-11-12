@@ -35,7 +35,7 @@ jobs:
           cd client
           npm install
           echo "✅ Client dependencies installed"
-          npm run build
+          REACT_APP_API_URL=/api npm run build
           echo "✅ React client built successfully"
 
       - name: 'Create minimal deployment package'

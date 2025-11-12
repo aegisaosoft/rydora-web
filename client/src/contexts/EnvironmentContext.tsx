@@ -37,7 +37,7 @@ export const EnvironmentProvider: React.FC<EnvironmentProviderProps> = ({ childr
     // Load from localStorage or default to production
     const saved = localStorage.getItem('rydora-environment');
     const env = (saved as Environment) || 'production';
-    console.log('Environment initialized:', env, 'from localStorage:', saved || 'default');
+    console.log('🏁 Environment initialized:', env, 'from localStorage:', saved || 'default');
     return env;
   });
 
@@ -59,7 +59,7 @@ export const EnvironmentProvider: React.FC<EnvironmentProviderProps> = ({ childr
     
     // Rate limiting: don't fetch more than once every 5 seconds
     if (!force && timeSinceLastFetch < 5000) {
-      console.log('Rate limiting: skipping API fetch (too recent)');
+      console.log('⏳ Rate limiting: skipping API fetch (too recent)');
       return;
     }
 
@@ -80,7 +80,7 @@ export const EnvironmentProvider: React.FC<EnvironmentProviderProps> = ({ childr
             ? 'https://agsm-huur-production-api.azurewebsites.net'
             : 'https://agsm-back.azurewebsites.net';
           setActualRydoraApiUrl(fallbackUrl);
-          console.log('Running on SWA without absolute API base; using fallback Rydora API URL:', fallbackUrl);
+          console.log('🔗 Running on SWA without absolute API base; using fallback Rydora API URL:', fallbackUrl);
           return;
         }
 
@@ -92,23 +92,22 @@ export const EnvironmentProvider: React.FC<EnvironmentProviderProps> = ({ childr
           timeout: 10000 // 10 second timeout
         });
         setActualRydoraApiUrl(response.data.currentRydoraApiUrl);
-        console.log('Fetched actual Rydora API URL:', response.data.currentRydoraApiUrl);
+        console.log('🔗 Fetched actual Rydora API URL:', response.data.currentRydoraApiUrl);
       } catch (error: any) {
         // Avoid noisy console errors in production; fall back gracefully
         console.log('Failed to fetch Rydora API config, using fallback URL');
         
         // Handle rate limiting specifically
         if (error.response?.status === 429) {
-          console.log('Rate limited - using fallback URL');
+          console.log('🚫 Rate limited - using fallback URL');
         }
         
         // Set a fallback URL instead of error message
-        // Use the same production API as the old project since it works fine
-        const fallbackUrl = environment === 'production'
+        const fallbackUrl = environment === 'production' 
           ? 'https://agsm-huur-production-api.azurewebsites.net'
           : 'https://agsm-back.azurewebsites.net';
         setActualRydoraApiUrl(fallbackUrl);
-        console.log('Using fallback Rydora API URL:', fallbackUrl);
+        console.log('🔗 Using fallback Rydora API URL:', fallbackUrl);
       }
     }, 1000); // 1 second debounce
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,8 +117,8 @@ export const EnvironmentProvider: React.FC<EnvironmentProviderProps> = ({ childr
   useEffect(() => {
     // Save environment selection to localStorage for persistence
     localStorage.setItem('rydora-environment', environment);
-    console.log('Environment changed to:', environment);
-    console.log('API Base URL (always):', baseUrl);
+    console.log('🌍 Environment changed to:', environment);
+    console.log('🔗 API Base URL (always):', baseUrl);
     updateApiBaseUrl(baseUrl);
     
     // Fetch actual Rydora API URL after updating base URL (with debouncing)
