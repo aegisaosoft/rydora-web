@@ -589,6 +589,33 @@ export const rydoraApi = {
     console.log('Response status:', response.status);
     console.log('Response data:', response.data);
     return response.data;
+  },
+
+  // Send invoice PDF via email (Admin only)
+  sendInvoiceEmail: async (invoiceId: string, pdfBlob: Blob) => {
+    console.log('=== SEND INVOICE EMAIL API CALL ===');
+    console.log('Invoice ID:', invoiceId);
+    
+    // Convert blob to base64
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = (reader.result as string).split(',')[1]; // Remove data:application/pdf;base64, prefix
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(pdfBlob);
+    });
+
+    const response = await api.post(`/rydora/external-daily-invoice/send-email/${invoiceId}`, {
+      pdfBase64: base64
+    }, {
+      timeout: 60000 // 60 second timeout for email sending
+    });
+    
+    console.log('Response status:', response.status);
+    console.log('Response data:', response.data);
+    return response.data;
   }
 };
 

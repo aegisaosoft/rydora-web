@@ -542,6 +542,189 @@ const InvoiceDetails: React.FC = () => {
     }
   };
 
+  const handleEmailInvoice = async () => {
+    if (!invoiceData) {
+      toast.error('No invoice data to email');
+      return;
+    }
+
+    try {
+      const loadingToast = toast.loading('Generating PDF and sending email...');
+
+      // Dynamically import jsPDF
+      const jsPDF = (await import('jspdf')).default;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let yPosition = margin;
+
+      // Helper function to add new page if needed
+      const checkPageBreak = (heightNeeded: number) => {
+        if (yPosition + heightNeeded > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Calculate totals
+      const tollsTotal = invoiceData.tolls?.reduce((sum, toll) => sum + Number(toll.amount || 0), 0) || 0;
+      const feesTotal = invoiceData.fees?.reduce((sum, fee) => sum + Number(fee.amount || 0), 0) || 0;
+      const violationsTotal = invoiceData.violations?.reduce((sum, violation) => sum + Number(violation.amount || 0), 0) || 0;
+      const totalAmount = tollsTotal + feesTotal + violationsTotal;
+
+      // Title
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Invoice ${invoiceData.number || invoiceData.id}`, margin, yPosition);
+      yPosition += 12;
+
+      // Invoice Header Information
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Invoice Number:', margin, yPosition);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(invoiceData.number || invoiceData.id.substring(0, 24), margin + 30, yPosition);
+      yPosition += 6;
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Company:', margin, yPosition);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(getCompanyName(), margin + 30, yPosition);
+      yPosition += 6;
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Invoice Date:', margin, yPosition);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(formatDate(invoiceData.invoiceDate), margin + 30, yPosition);
+      yPosition += 6;
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Status:', margin, yPosition);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(getInvoiceStatusLabel(invoiceData.status).label, margin + 30, yPosition);
+      yPosition += 10;
+
+      // Total Amount
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Total Amount: $${totalAmount.toFixed(2)}`, margin, yPosition);
+      yPosition += 12;
+
+      // Draw line
+      pdf.setLineWidth(0.5);
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+
+      // GROUPED BY BOOKING AND DRIVER SECTION
+      if (bookingGroups.length > 0) {
+        bookingGroups.forEach((group, gIndex) => {
+          // Group header with booking and driver
+          const groupSubtotal = [
+            ...group.tolls.map(t => Number(t.amount || 0)),
+            ...group.violations.map(v => Number(v.amount || 0)),
+            ...group.fees.map(f => Number(f.amount || 0))
+          ].reduce((a, b) => a + b, 0);
+          const driverFromGroup = (
+            [
+              ...group.tolls.map(t => t.driver),
+              ...group.violations.map(v => v.driver),
+              ...group.fees.map(f => f.driver)
+            ].find(d => typeof d === 'string' && d.trim() !== '') || null
+          );
+          const driverDisplay = driverFromGroup && typeof driverFromGroup === 'string' && driverFromGroup.trim() !== ''
+            ? driverFromGroup
+            : 'N/A';
+
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`${group.label} — Driver: ${driverDisplay}`, margin, yPosition);
+          pdf.setFontSize(12);
+          pdf.text(`Subtotal: $${groupSubtotal.toFixed(2)}`, pageWidth - margin - 40, yPosition);
+          yPosition += 8;
+
+          // Table header: Type | Details | Booking # | Amount | Status
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'bold');
+          const headerY = yPosition;
+          pdf.setFillColor(240, 240, 240);
+          pdf.rect(margin, headerY - 5, pageWidth - 2 * margin, 7, 'F');
+          pdf.text('Type', margin + 2, headerY);
+          pdf.text('Details', margin + 25, headerY);
+          pdf.text('Booking #', margin + 110, headerY);
+          pdf.text('Amount', margin + 150, headerY);
+          pdf.text('Status', margin + 175, headerY);
+          yPosition += 5;
+
+          // Combine rows in order Toll -> Violation -> Fee
+          const rows = [
+            ...group.tolls.map(toll => ({
+              type: 'Toll',
+              details: `Plate: ${toll.licensePlate || '-'} | State: ${toll.state || '-'}${toll.tollId ? ` | Toll ID: ${toll.tollId}` : ''}`,
+              booking: toll.bookingNumber || '-',
+              amount: Number(toll.amount || 0),
+              statusLabel: getPaymentStatusLabel(toll.paymentStatus).label
+            })),
+            ...group.violations.map(violation => ({
+              type: 'Violation',
+              details: `Citation: ${violation.citation || '-'} | Plate: ${violation.licensePlate || '-'} | State: ${violation.state || '-'} | Fee: ${getFeeTypeLabel(violation.feeType)}`,
+              booking: violation.bookingNumber || '-',
+              amount: Number(violation.amount || 0),
+              statusLabel: getPaymentStatusLabel(violation.paymentStatus).label
+            })),
+            ...group.fees.map(fee => ({
+              type: 'Fee',
+              details: `Fee Type: ${getFeeTypeLabel(fee.feeType)}${fee.description ? ` | ${fee.description}` : ''}`,
+              booking: fee.bookingNumber || '-',
+              amount: Number(fee.amount || 0),
+              statusLabel: getPaymentStatusLabel(fee.paymentStatus).label
+            }))
+          ];
+
+          pdf.setFont('helvetica', 'normal');
+          rows.forEach((row, rIndex) => {
+            checkPageBreak(8);
+            if ((rIndex % 2) === 0) {
+              pdf.setFillColor(250, 250, 250);
+              pdf.rect(margin, yPosition - 4, pageWidth - 2 * margin, 7, 'F');
+            }
+            pdf.text(row.type, margin + 2, yPosition);
+            // Truncate details to fit
+            const detailsText = String(row.details || '').substring(0, 80);
+            pdf.text(detailsText, margin + 25, yPosition);
+            pdf.text(String(row.booking).substring(0, 18), margin + 110, yPosition);
+            pdf.text(`$${row.amount.toFixed(2)}`, margin + 150, yPosition);
+            pdf.text(row.statusLabel, margin + 175, yPosition);
+            yPosition += 7;
+          });
+
+          yPosition += 8;
+          checkPageBreak(20);
+        });
+      }
+
+      // Convert PDF to blob for email
+      const pdfBlob = pdf.output('blob');
+
+      // Get invoice ID
+      const invoiceId = invoiceData.id;
+
+      // Send email via API
+      await rydoraApi.sendInvoiceEmail(invoiceId, pdfBlob);
+
+      toast.dismiss(loadingToast);
+      toast.success('Invoice PDF sent via email successfully');
+    } catch (error: any) {
+      console.error('Error sending invoice email:', error);
+      toast.error(error.response?.data?.message || 'Failed to send invoice email');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mt-5">
@@ -589,6 +772,15 @@ const InvoiceDetails: React.FC = () => {
               disabled={!invoiceData || (((invoiceData.tolls?.length || 0) + (invoiceData.fees?.length || 0) + (invoiceData.violations?.length || 0)) === 0)}
             >
               Export to PDF
+            </button>
+            <button 
+              className="btn btn-success" 
+              style={{ height: '32px', padding: '4px 12px' }} 
+              onClick={handleEmailInvoice}
+              disabled={!invoiceData || (((invoiceData.tolls?.length || 0) + (invoiceData.fees?.length || 0) + (invoiceData.violations?.length || 0)) === 0)}
+              title="Email invoice PDF"
+            >
+              📧 Email Invoice
             </button>
             <button className="btn btn-secondary" style={{ height: '32px', padding: '4px 12px' }} onClick={handleBackToInvoice}>
               ← Back to Invoice

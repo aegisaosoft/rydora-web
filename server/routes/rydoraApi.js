@@ -1643,6 +1643,49 @@ router.put('/external-daily-invoice/update/:id', async (req, res) => {
   }
 });
 
+// Send invoice PDF via email endpoint (Admin only)
+router.post('/external-daily-invoice/send-email/:invoiceId', async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const { pdfBase64 } = req.body;
+    
+    console.log('=== SEND INVOICE EMAIL REQUEST ===');
+    console.log('Invoice ID:', invoiceId);
+    console.log('PDF Base64 length:', pdfBase64 ? pdfBase64.length : 0);
+    
+    if (!pdfBase64) {
+      return res.status(400).json({ message: 'PDF base64 is required' });
+    }
+    
+    const endpoint = `/api/ExternalDailyInvoice/send-email/${invoiceId}`;
+    console.log('Calling endpoint:', endpoint);
+    console.log('Auth headers:', getForwardAuthHeaders(req));
+    
+    const client = createrydoraApiClient(req);
+    const response = await client.post(endpoint, {
+      pdfBase64
+    }, {
+      headers: getForwardAuthHeaders(req),
+      timeout: 60000 // 60 second timeout for email sending
+    });
+    
+    console.log('Send email response status:', response.status);
+    console.log('Send email response data:', response.data);
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('rydoraApi send email error:', error);
+    
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ 
+        message: 'Failed to send invoice email' 
+      });
+    }
+  }
+});
+
 // Delete External Daily Invoice by ID endpoint
 router.delete('/external-daily-invoice/delete/:id', async (req, res) => {
   try {
