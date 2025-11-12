@@ -75,8 +75,9 @@ export const EnvironmentProvider: React.FC<EnvironmentProviderProps> = ({ childr
         // skip fetching backend config to avoid 404s and use fallback URLs.
         const isStaticWebAppsHost = typeof window !== 'undefined' && /\.azurestaticapps\.net$/i.test(window.location.host);
         if (!isAbsoluteApiBase && isStaticWebAppsHost) {
+          // Use the same production API as the old project since it works fine
           const fallbackUrl = environment === 'production'
-            ? 'https://agsm-rydora-production-api.azurewebsites.net'
+            ? 'https://agsm-huur-production-api.azurewebsites.net'
             : 'https://agsm-back.azurewebsites.net';
           setActualRydoraApiUrl(fallbackUrl);
           console.log('Running on SWA without absolute API base; using fallback Rydora API URL:', fallbackUrl);
@@ -102,8 +103,9 @@ export const EnvironmentProvider: React.FC<EnvironmentProviderProps> = ({ childr
         }
         
         // Set a fallback URL instead of error message
-        const fallbackUrl = environment === 'production' 
-          ? 'https://agsm-rydora-production-api.azurewebsites.net'
+        // Use the same production API as the old project since it works fine
+        const fallbackUrl = environment === 'production'
+          ? 'https://agsm-huur-production-api.azurewebsites.net'
           : 'https://agsm-back.azurewebsites.net';
         setActualRydoraApiUrl(fallbackUrl);
         console.log('Using fallback Rydora API URL:', fallbackUrl);

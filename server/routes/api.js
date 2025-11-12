@@ -22,7 +22,7 @@ router.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    service: 'Rydora API'
+    service: 'Rydora-US API'
   });
 });
 
@@ -48,7 +48,8 @@ router.get('/rydora-api-config', (req, res) => {
   const RYDORA_API_CONFIG = {
     baseUrl: process.env.RYDORA_API_BASE_URL || 'https://agsm-back.azurewebsites.net',
     baseUrlDev: process.env.RYDORA_API_BASE_DEV_URL || 'https://agsm-back.azurewebsites.net',
-    baseUrlProd: process.env.RYDORA_API_BASE_URL_PROD || 'https://agsm-rydora-production-api.azurewebsites.net'
+    // Use the same production API as the old project since it works fine
+    baseUrlProd: process.env.RYDORA_API_BASE_URL_PROD || 'https://agsm-huur-production-api.azurewebsites.net'
   };
 
   // Determine which URL is currently being used
@@ -63,8 +64,8 @@ router.get('/rydora-api-config', (req, res) => {
       break;
   }
 
-  console.log('Environment from header:', environment);
-  console.log('Selected API URL:', currentUrl);
+  console.log('🔧 Environment from header:', environment);
+  console.log('🔗 Selected API URL:', currentUrl);
 
   res.json({
     environment,
@@ -78,7 +79,7 @@ router.get('/test-environment', (req, res) => {
   const environment = req.headers['x-environment'] || 'development';
   const timestamp = new Date().toISOString();
   
-  console.log('Test route called with environment:', environment);
+  console.log('🧪 Test route called with environment:', environment);
   
   res.json({
     message: 'Environment test',

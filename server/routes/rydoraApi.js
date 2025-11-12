@@ -16,7 +16,11 @@
 const express = require('express');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const router = express.Router();
+
+// Configure multer for handling multipart/form-data (memory storage for base64 strings)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Test route to verify server is running updated code
 router.get('/test-server-update', (req, res) => {
@@ -35,7 +39,8 @@ router.put('/test-put', (req, res) => {
 const RYDORA_API_CONFIG = {
   baseUrl: process.env.RYDORA_API_BASE_URL || 'https://agsm-back.azurewebsites.net',
   baseUrlDev: process.env.RYDORA_API_BASE_DEV_URL || 'https://agsm-back.azurewebsites.net',
-  baseUrlProd: process.env.RYDORA_API_BASE_URL_PROD || 'https://agsm-rydora-production-api.azurewebsites.net',
+  // Use the same production API as the old project since it works fine
+  baseUrlProd: process.env.RYDORA_API_BASE_URL_PROD || 'https://agsm-huur-production-api.azurewebsites.net',
   apiKey: process.env.RYDORA_API_KEY || 'your-rydora-api-key-here'
 };
 
@@ -44,7 +49,7 @@ function getApiBaseUrl(req) {
   // Get environment from request headers (set by frontend)
   const environment = req.headers['x-environment'] || 'development';
   
-  console.log('Environment from header:', environment);
+  console.log('🔧 Environment from header:', environment);
   
   // Use environment parameter to determine API URL
   let selectedUrl;
@@ -58,7 +63,7 @@ function getApiBaseUrl(req) {
       break;
   }
   
-  console.log('Selected API URL for environment', environment, ':', selectedUrl);
+  console.log('🔗 Selected API URL for environment', environment, ':', selectedUrl);
   return selectedUrl;
 }
 
@@ -803,6 +808,7 @@ router.get('/invoice-details', async (req, res) => {
     console.log('Base URL:', RYDORA_API_CONFIG.baseUrl);
     
     const response = await getWithFallbacks(
+      req,
       paths,
       {
         headers: getForwardAuthHeaders(req)
@@ -1044,6 +1050,7 @@ router.get('/pending-payments', async (req, res) => {
     console.log('Base URL:', RYDORA_API_CONFIG.baseUrl);
     
     const response = await getWithFallbacks(
+      req,
       paths,
       {
         headers: getForwardAuthHeaders(req)
@@ -1644,17 +1651,30 @@ router.put('/external-daily-invoice/update/:id', async (req, res) => {
 });
 
 // Send invoice PDF via email endpoint (Admin only)
-router.post('/external-daily-invoice/send-email/:invoiceId', async (req, res) => {
+// Backend expects IFormFile with field name "file"
+router.post('/external-daily-invoice/send-email/:invoiceId', upload.single('file'), async (req, res) => {
   try {
     const { invoiceId } = req.params;
-    const { pdfBase64 } = req.body;
     
     console.log('=== SEND INVOICE EMAIL REQUEST ===');
     console.log('Invoice ID:', invoiceId);
-    console.log('PDF Base64 length:', pdfBase64 ? pdfBase64.length : 0);
+    console.log('Request content type:', req.headers['content-type']);
+    console.log('Request method:', req.method);
+    console.log('Request body keys:', Object.keys(req.body || {}));
+    console.log('Has file:', !!req.file);
+    console.log('File name:', req.file?.originalname);
+    console.log('File size:', req.file?.size, 'bytes');
+    console.log('File mimetype:', req.file?.mimetype);
+    console.log('File fieldname:', req.file?.fieldname);
+    console.log('Multer error:', req.file ? null : 'No file received by multer');
     
-    if (!pdfBase64) {
-      return res.status(400).json({ message: 'PDF base64 is required' });
+    if (!req.file) {
+      console.error('ERROR: No file received. Request body:', req.body);
+      console.error('ERROR: Request headers:', req.headers);
+      return res.status(400).json({ 
+        message: 'File is required',
+        details: 'No file was received by the server. Please ensure the file is sent with field name "file".'
+      });
     }
     
     const endpoint = `/api/ExternalDailyInvoice/send-email/${invoiceId}`;
@@ -1662,10 +1682,21 @@ router.post('/external-daily-invoice/send-email/:invoiceId', async (req, res) =>
     console.log('Auth headers:', getForwardAuthHeaders(req));
     
     const client = createrydoraApiClient(req);
-    const response = await client.post(endpoint, {
-      pdfBase64
-    }, {
-      headers: getForwardAuthHeaders(req),
+    
+    // Forward the file as FormData to backend API
+    // Backend expects IFormFile with field name "file"
+    const FormData = require('form-data');
+    const formData = new FormData();
+    formData.append('file', req.file.buffer, {
+      filename: req.file.originalname || 'invoice.pdf',
+      contentType: req.file.mimetype || 'application/pdf'
+    });
+    
+    const response = await client.post(endpoint, formData, {
+      headers: {
+        ...getForwardAuthHeaders(req),
+        ...formData.getHeaders() // This sets Content-Type with boundary
+      },
       timeout: 60000 // 60 second timeout for email sending
     });
     
@@ -1675,12 +1706,18 @@ router.post('/external-daily-invoice/send-email/:invoiceId', async (req, res) =>
     res.json(response.data);
   } catch (error) {
     console.error('rydoraApi send email error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data
+    });
     
     if (error.response) {
       res.status(error.response.status).json(error.response.data);
     } else {
       res.status(500).json({ 
-        message: 'Failed to send invoice email' 
+        message: 'Failed to send invoice email: ' + error.message
       });
     }
   }

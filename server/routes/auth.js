@@ -22,7 +22,8 @@ const router = express.Router();
 const RYDORA_API_CONFIG = {
   baseUrl: process.env.RYDORA_API_BASE_URL || 'https://agsm-back.azurewebsites.net',
   baseUrlDev: process.env.RYDORA_API_BASE_DEV_URL || 'https://agsm-back.azurewebsites.net',
-  baseUrlProd: process.env.RYDORA_API_BASE_URL_PROD || 'https://agsm-rydora-production-api.azurewebsites.net',
+  // Use the same production API as the old project since it works fine
+  baseUrlProd: process.env.RYDORA_API_BASE_URL_PROD || 'https://agsm-huur-production-api.azurewebsites.net',
   apiKey: process.env.RYDORA_API_KEY || ''
 };
 
@@ -31,7 +32,7 @@ function getApiBaseUrl(req) {
   // Get environment from request headers (set by frontend)
   const environment = req.headers['x-environment'] || 'development';
   
-  console.log('Auth route - Environment from header:', environment);
+  console.log('🔧 Auth route - Environment from header:', environment);
   
   // Use environment parameter to determine API URL
   let selectedUrl;
@@ -45,7 +46,7 @@ function getApiBaseUrl(req) {
       break;
   }
   
-  console.log('Auth route - Selected API URL for environment', environment, ':', selectedUrl);
+  console.log('🔗 Auth route - Selected API URL for environment', environment, ':', selectedUrl);
   return selectedUrl;
 }
 
@@ -54,7 +55,7 @@ function testEnvironmentSwitching(req) {
   const environment = req.headers['x-environment'] || 'development';
   const apiUrl = getApiBaseUrl(req);
   
-  console.log('Test - Environment:', environment, 'API URL:', apiUrl);
+  console.log('🧪 Test - Environment:', environment, 'API URL:', apiUrl);
   return { environment, apiUrl };
 }
 
@@ -242,6 +243,7 @@ router.post('/login', async (req, res) => {
         city: user.city,
         stateId: user.stateId,
         isOwner: user.isOwner,
+        isAdmin: user.isAdmin,
         imageURL: user.imageURL
       };
 
@@ -258,6 +260,7 @@ router.post('/login', async (req, res) => {
           city: user.city,
           stateId: user.stateId,
           isOwner: user.isOwner,
+          isAdmin: user.isAdmin,
           imageURL: user.imageURL
         }
       });

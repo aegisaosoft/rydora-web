@@ -35,7 +35,7 @@ expressApp.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://ashy-forest-035b62d0f.3.azurestaticapps.net", "https://agsm-back.azurewebsites.net", "https://agsm-rydora-production-api.azurewebsites.net"]
+      connectSrc: ["'self'", "https://ashy-forest-035b62d0f.3.azurestaticapps.net", "https://agsm-back.azurewebsites.net", "https://agsm-huur-production-api.azurewebsites.net"]
     }
   }
 }));
@@ -70,7 +70,7 @@ expressApp.use(morgan('combined'));
 
 // Session configuration
 expressApp.use(session({
-  secret: process.env.SESSION_SECRET || 'rydora-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'huur-us-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {

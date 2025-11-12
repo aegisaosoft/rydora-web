@@ -43,7 +43,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "http://localhost:5000", "https://192.168.1.134", "https://192.168.1.134:9443", "https://rydora.ngrok.io", "https://agsm-back.azurewebsites.net", "https://agsm-rydora-production-api.azurewebsites.net"]
+      connectSrc: ["'self'", "http://localhost:5000", "https://192.168.1.134", "https://192.168.1.134:9443", "https://huur-us.ngrok.io", "https://agsm-back.azurewebsites.net", "https://agsm-huur-production-api.azurewebsites.net"]
     }
   },
   crossOriginOpenerPolicy: false,
@@ -54,8 +54,8 @@ app.use(helmet({
 // CORS configuration - MUST come before rate limiting
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://192.168.1.134:9443', 'https://192.168.1.134', 'http://192.168.1.134:5000', 'https://rydora.ngrok.io'] 
-    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://192.168.1.134:9443', 'https://rydora.ngrok.io'],
+    ? ['https://192.168.1.134:9443', 'https://192.168.1.134', 'http://192.168.1.134:5000', 'https://huur-us.ngrok.io'] 
+    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://192.168.1.134:9443', 'https://huur-us.ngrok.io'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Environment'],
@@ -98,7 +98,7 @@ if (process.env.SESSION_COOKIE_DOMAIN) {
 }
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'rydora-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'huur-us-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: sessionCookie
@@ -109,7 +109,7 @@ console.log('Registering routes...');
 app.use('/api/auth', authRoutes);
 console.log('Auth routes registered');
 app.use('/api/rydora', rydoraApiRoutes);
-console.log('rydoraApi routes registered');
+console.log('RydoraApi routes registered');
 app.use('/api', apiRoutes);
 console.log('API routes registered');
 
@@ -134,7 +134,7 @@ if (false) { // Disabled the development-only block
   // Development mode - show API info
   app.get('/', (req, res) => {
     res.json({ 
-      message: 'Rydora US API Server', 
+      message: 'Rydora API Server', 
       status: 'running',
       version: '1.0.0',
       mode: 'development',

@@ -49,8 +49,8 @@ const ControlPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Tolls - Admin only */}
-        {isAdmin && (
+        {/* Tolls - Admin or Owner */}
+        {canAccessAdminFeatures && (
           <div className="dashboard-card">
             <div className="card-icon">
               <i className="fas fa-dollar-sign"></i>
@@ -63,8 +63,8 @@ const ControlPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Parking Violations - Admin only */}
-        {isAdmin && (
+        {/* Parking Violations - Admin or Owner */}
+        {canAccessAdminFeatures && (
           <div className="dashboard-card">
             <div className="card-icon">
               <i className="fas fa-car"></i>
